@@ -1,0 +1,116 @@
+﻿<Window x:Class="NoteBookShelf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NoteBookShelf"
+        mc:Ignorable="d"
+        Title="NoteBook shelf" Height="350" Width="525" Icon="nav-wooddark.ico">
+    <Window.Resources>
+        <DataTemplate x:Key="ItemTemplate">
+            <WrapPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="300"/>
+                        <RowDefinition Height="50"/>
+                    </Grid.RowDefinitions>
+                    <Image Grid.Row="0" Width="200" Height="300" Stretch="Fill" Source="{Binding Path=Image}"/>
+                    <TextBlock Grid.Row="0" Text="{Binding Path= Title}"
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="Blue" BlurRadius="10" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Text="{Binding Path=Date}" HorizontalAlignment="Center"/>
+                </Grid>
+            </WrapPanel>
+        </DataTemplate>
+        <ControlTemplate x:Key="HyperlinkLikeButtonTemplate" TargetType="{x:Type Button}">
+            <TextBlock x:Name="innerText" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" Cursor="Hand" >
+        <ContentPresenter />
+            </TextBlock>
+            <ControlTemplate.Triggers>
+                <Trigger Property="Button.IsMouseOver" Value="true">
+                    <Setter TargetName="innerText" Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                    <Setter TargetName="innerText" Property="TextDecorations" Value="Underline" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+    </Window.Resources>
+    <Grid Opacity="0.75">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <ImageBrush ImageSource = "Templates\nav-wooddark@2x.png" Stretch="UniformToFill"/>
+        </Grid.Background>
+        <Button Command="{Binding ShowNavigationCommand}" HorizontalAlignment="Left" Grid.Row="0" Grid.ColumnSpan="2">
+            <Image Source="Templates\menubar.png"/>
+        </Button>
+        <Button Command="{Binding AddNewBookCommand}" HorizontalAlignment="Right" Grid.Row="0" Grid.ColumnSpan="2">
+            <Image Source="Templates\add_icon.png"/>
+        </Button>
+        <TreeView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding NoteBookFolders}">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding NoteBooks}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Templates/folder.png" Width="20"/>
+                        <!--<TextBlock Foreground="Red" Text="{Binding FolderName}" />-->
+                        <Button Content="{Binding FolderName}" 
+                                Tag="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType= {x:Type Window}}}"
+                                Template="{StaticResource ResourceKey=HyperlinkLikeButtonTemplate}"
+                                Command="{Binding DataContext.LoadFolderItemsCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type TreeView}}}"
+                                CommandParameter="{Binding FolderName, Mode=TwoWay}"
+                         >
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add New Category"
+                                             Command="{Binding Path=PlacementTarget.Tag.DataContext.AddNewFolderCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ContextMenu}}}"/>
+                                    <MenuItem Header="Add New Book"
+                                              Command="{Binding Path=PlacementTarget.Tag.DataContext.AddNewBookCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding FolderName, Mode=TwoWay}"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                            
+                        </Button>
+                    </StackPanel>
+                    <HierarchicalDataTemplate.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Title}" 
+                                Tag="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType= {x:Type Window}}}"
+                                Template="{StaticResource ResourceKey=HyperlinkLikeButtonTemplate}"
+                                Command="{Binding DataContext.LoadBookCommand,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type TreeView}}}"
+                                CommandParameter="{Binding Title, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </HierarchicalDataTemplate.ItemTemplate>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding DataContext.IsVisible, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type TreeView}}}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+        <ListView Grid.Row="1" Grid.Column="1" Name ="NoteBookListView" ItemTemplate="{StaticResource ItemTemplate}" ItemsSource="{Binding NoteBooks,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="5" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.Background>
+                <ImageBrush ImageSource = "Templates\nav-wooddark@2x.png" Stretch="UniformToFill"/>
+            </ListView.Background>
+        </ListView>
+    </Grid>
+</Window>
